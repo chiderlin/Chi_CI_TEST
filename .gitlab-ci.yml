@@ -1,9 +1,7 @@
-
 build-job:
   stage: build
   tags:
     - docker
-    - ubuntu:18.04
   script:
     - echo "Hello, $GITLAB_USER_LOGIN!"
 
