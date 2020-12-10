@@ -4,11 +4,11 @@ stages:
     - deploy
  
 build:
- stage: build
- script:
+  stage:build
+  script:
     - echo "Hello, $GITLAB_USER_LOGIN!"
   only:
-      - docker
+    - docker
 test-job1:
   stage: test
   script:
