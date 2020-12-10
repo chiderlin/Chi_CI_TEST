@@ -1,8 +1,9 @@
-stages: 
-  - build
+stages:
+  - build-test
   - test
-  - deploy
- 
+  - depoly
+
+
 build:
   stage: build
   script:
