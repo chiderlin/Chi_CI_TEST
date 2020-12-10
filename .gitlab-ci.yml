@@ -5,7 +5,7 @@ stages:
  
 build:
  stage: build
-  script:
+ script:
     - echo "Hello, $GITLAB_USER_LOGIN!"
   only:
       - docker
