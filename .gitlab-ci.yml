@@ -1,11 +1,10 @@
-
 build-job:
   stage: 
     - build
     - test
     - deploy
   tags:
-    - "docker"
+    - docker
   script:
     - echo "Hello, $GITLAB_USER_LOGIN!"
 
