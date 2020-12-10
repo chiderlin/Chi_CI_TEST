@@ -5,7 +5,7 @@ stages:
 
 
 build:
-  stage: build
+  stage: build-test
   script:
     - echo "Hello, $GITLAB_USER_LOGIN!"
   only:
