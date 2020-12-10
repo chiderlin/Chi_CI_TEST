@@ -1,13 +1,11 @@
-default:
-  tags:
-    - "docker" 
 
 build-job:
   stage: 
     - build
     - test
     - deploy
-
+  tags:
+    - "docker"
   script:
     - echo "Hello, $GITLAB_USER_LOGIN!"
 
