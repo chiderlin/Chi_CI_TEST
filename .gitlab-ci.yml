@@ -14,17 +14,11 @@ build_job:
     - echo "test"
     - python3 -V  # Print out python version for debugging
     - python3 manage.py test
-  # artifacts: # transfer file
-  #   paths:
-  #     - ./
-  #   expire_in: 1h
 
 deploy_job:
   stage: deploy
   image: tpepchi9/web_base:latest
-  # dependencies:
-  #   - build_job
-  before_script:
+  before_script: #在container裡面建立SSH 
     # 预先装 ssh-agent
     - 'which ssh-agent || ( apk update && apk add openssh-client)'
     # 启动服务
