@@ -1,7 +1,7 @@
+# 各位參考用
 default:
   tags:
     - docker
-
 
 stages:
   - build
@@ -15,7 +15,7 @@ build_job:
     - python3 -V  # Print out python version for debugging
     - python3 manage.py test
 
-deploy_job:
+deploy_UAT: #測試環境deploy
   stage: deploy
   image: tpepchi9/web_base:latest
   before_script: #在container裡面建立SSH 
@@ -40,7 +40,27 @@ deploy_job:
     - ssh root@10.80.1.24 "cd /tttest && docker-compose -f docker-compose.yml down && docker-compose -f docker-compose.yml up -d"
     - hostname
     - echo "OK"
-  # environment:
-  #   name: UAT
-  #   url: http://10.80.1.24
+  when: manual #手動模式
+
+deploy_PROD: #正式環境deploy
+  stage: deploy
+  image: tpepchi9/web_base:latest
+  before_script:
+    - 'which ssh-agent || ( apk update && apk add openssh-client)'
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" > deploy.key
+    - chmod 0600 deploy.key
+    - ssh-add deploy.key
+    - mkdir -p ~/.ssh    
+    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config' 
+  script:
+    - echo "PROD"
+    - ssh root@10.80.1.18 "cd /tttest && rm ./* -rf && git clone http://10.80.1.20/root/ssh_docker_test.git"
+    - scp docker-compose.yml root@10.80.1.18:/tttest
+    - ssh root@10.80.1.18 "cd /tttest && docker-compose -f docker-compose.yml down && docker-compose -f docker-compose.yml up -d"
+    - ls
+    - hostname
+    - echo "OK"
   when: manual
+  only:
+    - master
