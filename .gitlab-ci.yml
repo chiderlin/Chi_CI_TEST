@@ -7,7 +7,7 @@ stages:
   - test
   - deploy
 
-build_job:
+test_job:
   stage: test
   image: tpepchi9/web_base:latest
   script:
