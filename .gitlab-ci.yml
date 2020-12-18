@@ -4,11 +4,11 @@ default:
     - docker
 
 stages:
-  - build
+  - test
   - deploy
 
 build_job:
-  stage: build
+  stage: test
   image: tpepchi9/web_base:latest
   script:
     - echo "test"
