@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.http.response import JsonResponse, HttpResponse
+from django.http.response import JsonResponse
 from django.core import serializers
 from rest_framework.parsers import JSONParser, FormParser, MultiPartParser, FileUploadParser
 from rest_framework import status
@@ -8,7 +8,6 @@ from db_api.models import DomainTestLog, DomainListAll
 from db_api.serializers import DomainTestLogSerializer, DomainListAllSerializer
 import time
 import json
-from rest_framework import generics
 
 # Create your views here.
 '''
@@ -33,7 +32,7 @@ def C_data(request):
         model, serializers = main(tablename)
         if tablename == "domaintestlog":
             data_serializer = serializers(data=input_, many=True)  
-            if data_serializer.is_valid():
+            if data_serializer.is_valid():  
                 data_serializer.save()
                 return JsonResponse(data, safe=False, status=status.HTTP_201_CREATED)
             return JsonResponse(data_serializer.errors, safe=False, status=status.HTTP_400_BAD_REQUEST)
@@ -49,54 +48,8 @@ def C_data(request):
 
 @api_view(['GET'])
 def R_data(request):
-    '''show all of the data'''
-    if request.method == 'GET':
-        tablename = request.GET.get("tablename", None)
-        domaintype = request.GET.get("domaintype", None)
-        if not tablename:
-            return JsonResponse({'message': 'Params:tablename'})
-        tablename = tablename.lower()
-        model, serializers = main(tablename)
-        domaintype_list = ["1", "2", "3"]
-        if tablename == "domaintestlog":
-            if not domaintype:
-                domaintestlog = model.objects.using('test').all()
-            elif domaintype in domaintype_list:
-                domaintestlog = model.objects.using('test').filter(DomainType=domaintype)
-            else:
-                return JsonResponse({'message': f'domaintype list:{domaintype_list}'})
-
-            if domaintestlog.count() == 0:
-                return JsonResponse({'message': 'No data.'})
-            data_serializer = serializers(domaintestlog, many=True) #serializer驗證model的資料
-            results = {"results": data_serializer.data}
-            return JsonResponse(results, safe=False)
-
-
-        elif tablename == "domainlistall":
-            if not domaintype:
-                domainlistall = model.objects.using('test').all()
-            elif domaintype in domaintype_list:
-                domainlistall = model.objects.using('test').filter(DomainType=domaintype)
-            else:
-                return JsonResponse({'message': f'domaintype list:{domaintype_list}'})
-
-            if domainlistall.count() == 0:
-                return JsonResponse({'message': 'No data.'})
-            data_serializer = serializers(domainlistall, many=True)
-            results = {"results": data_serializer.data}
-            return JsonResponse(results, safe=False)
-        else:
-            return JsonResponse({"message": "Table doesn't exist."})
-
-
-# sql = f'SELECT {cloumn} FROM DEV_PJ83BN.{tablename} where {key}={value};'
-@api_view(['GET'])
-def R_data_filter(request): 
     '''show data'''
     if request.method == 'GET':
-        # dict_ = request.GET.dict() #dict_keys(['tablename','domaintype',...])
-        # print(dict_)
         tablename = request.GET.get("tablename", None)
         filter_data = request.GET.get("filter_data", None)
         if not tablename:
@@ -105,29 +58,27 @@ def R_data_filter(request):
         model, serializers = main(tablename)
         
         if tablename == "domaintestlog":
-            domaintestlog = model.objects.using('test').all() #<class 'django.db.models.query.QuerySet'>
-                # print(dir(model.objects))
+            domaintestlog = model.objects.using('default').all()
             if filter_data:
                 data = json.loads(filter_data)
                 try:
-                    domaintestlog = model.objects.using('test').complex_filter(data).values('id','UrlIn') #<class 'django.db.models.query.QuerySet'>
+                    domaintestlog = model.objects.using('default').complex_filter(data)
                 except Exception as e:
                     return JsonResponse({'message': f'{e}'})
 
 
             if domaintestlog.count() == 0:
                 return JsonResponse({'message': 'No data.'})
-            # data_serializer = serializers(domaintestlog, many=True)
-            # results = {"results": data_serializer.data}
-            # return JsonResponse(results, safe=False)
-            return JsonResponse({"result": list(domaintestlog)}, safe=False)
+            data_serializer = serializers(domaintestlog, many=True)
+            results = {"results": data_serializer.data}
+            return JsonResponse(results, safe=False)
 
         elif tablename == "domainlistall":
-            domainlistall = model.objects.using('test').all()
+            domainlistall = model.objects.using('default').all()
             if filter_data:
                 data = json.loads(filter_data)
                 try:
-                    domainlistall = model.objects.using('test').complex_filter(data)
+                    domainlistall = model.objects.using('default').complex_filter(data)
                 except Exception as e:
                     return JsonResponse({'message': f'{e}'})
 
@@ -139,8 +90,6 @@ def R_data_filter(request):
             return JsonResponse(results, safe=False)
         else:
             return JsonResponse({"message": "Table doesn't exist."})
-
-
 
 
 @api_view(['PUT'])
@@ -156,7 +105,7 @@ def U_data(request, id_):
         input_ = data['data'][0]
         model, serializers = main(tablename)
         if tablename == "domaintestlog":
-            domaintestlog = model.objects.using('test').get(id=id_)
+            domaintestlog = model.objects.using('default').get(id=id_)
             # print(domaintestlog.CDN)
             # domaintestlog.TestTime = data["TestTime"]
             # domaintestlog.save()
@@ -167,7 +116,7 @@ def U_data(request, id_):
                 return JsonResponse(successed, status=status.HTTP_200_OK)
             return JsonResponse(data_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         elif tablename == "domainlistall":
-            domainlistall = model.objects.using('test').get(id=id_)
+            domainlistall = model.objects.using('default').get(id=id_)
             data_serializer = serializers(domainlistall, data=input_)
             if data_serializer.is_valid():
                 data_serializer.save()
@@ -176,21 +125,6 @@ def U_data(request, id_):
             return JsonResponse(data_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         else:
             return JsonResponse({"message": "Table doesn't exist."})
-
-
-
-#試做bulk_update #FIXME:未成功
-class DomainTestLogUpdateView(generics.UpdateAPIView):
-    lookup_field = "id"
-    serializer_class = DomainTestLogSerializer
-    def get_queryset(self):
-        return DomainTestLog.objects.filter(
-            id = self.kwargs["id"],
-        )
-
-
-
-
 
 
 @api_view(['DELETE'])
@@ -203,14 +137,14 @@ def D_data(request, tablename, id_):
         model, serializers = main(tablename)
         if tablename == "domaintestlog":
             try:
-                domaintestlog = model.objects.using('test').get(id=id_)
+                domaintestlog = model.objects.using('default').get(id=id_)
                 domaintestlog.delete()
                 return JsonResponse({"message": f"ID {id_} was deleted successfully!"}, status=status.HTTP_204_NO_CONTENT)
             except:
                 return JsonResponse({"message": "ID doesn't exist"}, status=status.HTTP_204_NO_CONTENT)
         elif tablename == "domainlistall":
             try:
-                domainlistall = model.objects.using('test').get(id=id_)
+                domainlistall = model.objects.using('default').get(id=id_)
                 domainlistall.delete()
                 return JsonResponse({'message': f'ID: {id_} was deleted successfully!'}, status=status.HTTP_204_NO_CONTENT)
             except:
@@ -228,12 +162,12 @@ def D_all_data(request, tablename):
 
         model, serializers = main(tablename)
         if tablename == "domaintestlog":
-            count = model.objects.all().using('test').delete()
+            count = model.objects.all().using('default').delete()
             if count[1]["db_api.DomainTestLog"] == 0:
                 return JsonResponse({'message': 'Database was already empty.'})
             return JsonResponse({'message': f'Total {count[0]} was deleted successfully!'}, status=status.HTTP_204_NO_CONTENT)
         elif tablename == "domainlistall":
-            count = model.objects.all().using('test').delete()
+            count = model.objects.all().using('default').delete()
             if count[1]["db_api.DomainListAll"] == 0:
                 return JsonResponse({'message': 'Database was already empty.'})
             return JsonResponse({'message': f'Total {count[0]} was deleted successfully!'}, status=status.HTTP_204_NO_CONTENT)

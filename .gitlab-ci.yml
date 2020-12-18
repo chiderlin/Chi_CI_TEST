@@ -1,30 +1,52 @@
-stages:
-  - build-test
-  - test
-  - depoly
-
-
-build-test:
-  stage: build-test
-  script:
-    - echo "Hello, $GITLAB_USER_LOGIN!"
-  only:
+default:
+  tags:
     - docker
-    
-test:
-  stage: test
-  script:
-    - echo "This job tests something"
 
-test:
-  stage: test
-  script:
-    - echo "This job tests something, but takes more time than test-job1."
-    - echo "After the echo commands complete, it runs the sleep command for 5 seconds"
-    - echo "which simulates a test that runs 5 seconds longer than test-job1"
-    - sleep 5
 
-deploy:
-  stage: depoly
+stages:
+  - build
+  - deploy
+
+build_job:
+  stage: build
+  image: tpepchi9/web_base:latest
   script:
-    - echo "This job deploys something from the $CI_COMMIT_BRANCH branch."
+    - echo "test"
+    - python3 -V  # Print out python version for debugging
+    - python3 manage.py test
+  # artifacts: # transfer file
+  #   paths:
+  #     - ./
+  #   expire_in: 1h
+
+deploy_job:
+  stage: deploy
+  image: tpepchi9/web_base:latest
+  # dependencies:
+  #   - build_job
+  before_script:
+    # 预先装 ssh-agent
+    - 'which ssh-agent || ( apk update && apk add openssh-client)'
+    # 启动服务
+    - eval $(ssh-agent -s)
+    # 将私钥写入deploy.key 文件
+    - echo "$SSH_PRIVATE_KEY" > deploy.key
+    # 配置较低权限
+    - chmod 0600 deploy.key
+    # 注入密钥
+    - ssh-add deploy.key
+    - mkdir -p ~/.ssh    
+    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+  script:
+    - echo "test"
+    - ssh-copy-id root@10.80.1.24
+    - ssh root@10.80.1.24 "cd /tttest && rm ./* -rf && git clone http://10.80.1.20/root/ssh_docker_test.git"
+    - scp docker-compose.yml root@10.80.1.24:/tttest
+    # - ssh root@10.80.1.24 "cd /tttest/ssh_docker_test/PJ83_db_api && chmod -x run.sh"
+    - ssh root@10.80.1.24 "cd /tttest && docker-compose -f docker-compose.yml down && docker-compose -f docker-compose.yml up -d"
+    - hostname
+    - echo "OK"
+  # environment:
+  #   name: UAT
+  #   url: http://10.80.1.24
+  when: manual

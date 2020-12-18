@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'rest_framework', # Django REST framework
     # 'db_api.apps.DbApiConfig',
     'corsheaders', #CORS
+    
 ]
 
 MIDDLEWARE = [
@@ -97,11 +98,11 @@ REST_FRAMEWORK = {
 DATABASES = {
     'default': { # default, master
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'testdb',
+        'NAME': 'DEV_PJ83BN',
         'USER': 'root',
-        'PASSWORD': 'root',
-        'HOST': '127.0.0.1',
-        'PORT': '3306',
+        'PASSWORD': 'qwer1234',
+        'HOST': '10.80.1.20',
+        'PORT': '33061',
     },
     # 'slave': { # Read-Only
     #     'ENGINE': 'django.db.backends.mysql',
@@ -111,23 +112,16 @@ DATABASES = {
     #     'HOST': '10.80.1.20',
     #     'PORT': '33062',
     # },
-    # 'test':{
+    # 'default':{
     #     'ENGINE': 'django.db.backends.mysql',
     #     'NAME': 'testdb',
     #     'USER': 'root',
     #     'PASSWORD': 'root',
-    #     'HOST': '127.0.0.1',
+    #     'HOST': '10.10.3.161',
     #     'PORT': '3306',
     # }
 }
 
-    # 'default': { # default, master
-    #     'ENGINE': 'django.db.backends.mysql',
-    #     'NAME': 'DEV_PJ83BN',
-    #     'USER': 'root',
-    #     'PASSWORD': 'qwer1234',
-    #     'HOST': '10.80.1.20',
-    #     'PORT': '33061',
 
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators

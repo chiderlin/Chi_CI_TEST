@@ -1,0 +1,22 @@
+version: '3.3'
+services:
+  ssh_docker_test:
+    image: tpepchi9/web_base:latest
+    volumes:
+      - '/etc/localtime:/etc/localtime:ro'
+      - ./ssh_docker_test:/workspace
+    command: >
+      bash -c "uwsgi --ini /workspace/PJ83_db_api/uwsgi.ini &&
+      tail -f >> /dev/null"
+    ports:
+      - "7883:7883"
+    environment:
+      - LANG=C.UTF-8
+      - PYTHONIOENCODING=UTF-8
+      - ENV=DEV
+    # deploy:
+    #   restart_policy:
+    #     condition: any
+    #     delay: 5s
+    #     max_attempts: 3
+
