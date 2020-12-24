@@ -13,3 +13,9 @@
 2. 要被部署的那端server，先行建好git clone的資料夾位置，在用腳本進行傳輸。
 
 可參考yml檔。
+
+### 主要原因:
+目前研究的exector 使用 docker，
+在runner一執行的時候就會跑到container裡面，無法使用docker login & docker push & docker pull 把需要的image用腳本拉下來。
+
+可能要了解其他exector的不同，改變exector。(shell or something...?)
