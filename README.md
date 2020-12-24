@@ -1,5 +1,5 @@
-## PJ83_DB_API
-
+# Docker deploy using gitlab-ci + gitlab-runner.
+PJ83_DB_API
 使用功能API進行自動化部署的研究。
 
 
