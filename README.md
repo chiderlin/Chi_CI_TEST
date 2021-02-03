@@ -6,8 +6,11 @@
 ### 任務:
 主要研究使用docker架設gitlab, gitlab-runner設定,
 並使用gitlab-ci.yml 及 compose.yml 腳本執行自動化部署到遠端docker。
-.gitlab-ci.yml(給gitlab偵測的yml檔,放取 build,test,deploy指令)
-docker-compose.yml(給docker偵測的yml檔, 運作container和對外連線的指令)
+
+(註記)
+- .gitlab-ci.yml(給gitlab偵測的yml檔,放取 build,test,deploy指令)
+
+- docker-compose.yml(給docker偵測的yml檔, 運作container和對外連線的指令)
 
 ### 結論:
 已成功部署，幾點需要注意:
