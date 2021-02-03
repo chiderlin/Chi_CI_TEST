@@ -1,15 +1,23 @@
-# 各位參考用
-version: '3'
+version: '3' #docker-compose版本
 services:
-  ssh_docker_test:
+  ssh_docker_test: #專案資料夾名稱
     image: tpepchi9/web_base:latest
     volumes:
       - '/etc/localtime:/etc/localtime:ro'
-      - ./ssh_docker_test:/workspace
-    command: >
+      - ./ssh_docker_test:/workspace # linux:container 兩邊接口
+    command: > # uwsgi:一種python web server,用於連線Web伺服器和Web應用框架(Django自帶)
       bash -c "uwsgi --ini /workspace/PJ83_db_api/uwsgi.ini &&
       tail -f >> /dev/null"
     ports:
-      - "7883:7883"
+      - "7883:7883" #外部port:container port
 
+    # environment: # 可以自行設定環境 
+    #   - LANG=C.UTF-8
+    #   - PYTHONIOENCODING=UTF-8
+    #   - ENV=DEV
+    # deploy: #stack deploy會用到這個,但這邊CI/CD不用
+    #   restart_policy:
+    #     condition: any
+    #     delay: 5s
+    #     max_attempts: 3
 

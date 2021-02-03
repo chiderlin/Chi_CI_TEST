@@ -14,53 +14,63 @@ build_job:
     - echo "test"
     - python3 -V  # Print out python version for debugging
     - python3 manage.py test
+  # artifacts: # 像快取的東西
+  #   paths:
+  #     - ./
+  #   expire_in: 1h
 
 deploy_UAT:
   stage: deploy
   image: tpepchi9/web_base:latest
   variables:
-    CI_PROJECT_PATH: /root/docker_configs_dev/chi/testcicd
-    SSH_REMOTE_UAT: root@10.80.1.24
-  before_script: #在container 建立SSH
+    SSH_REMOTE_UAT: root@10.80.1.24 #先確定主機已設定好ssh
+    CI_PROJECT_PATH: /root/docker_configs_dev/chi/testcicd #確定已設此資料夾
+  # dependencies:
+  #   - build_job
+  before_script: #在container建立ssh
     # 预先装 ssh-agent 管理私鑰
     - 'which ssh-agent || ( apk update && apk add openssh-client)'
     # 启动服务 Run ssh-agent (inside the build environment)
     - eval $(ssh-agent -s)
     # 将私钥写入deploy.key 文件
-    - echo "$SSH_PRIVATE_KEY" > deploy.key #.20那台私鑰
+    - echo "$SSH_PRIVATE_KEY" > deploy.key
     # 配置较低权限
     - chmod 0600 deploy.key
     # 注入密钥
     - ssh-add deploy.key
     - mkdir -p ~/.ssh    
-    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config' #tStrictHostKeyChecking no 比較不安全的作法，但目前先這樣設
+    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config' #tStrictHostKeyChecking no安全性較低，但網內可以使用
   script:
     - echo "UAT"
+    - ssh $SSH_REMOTE_UAT
     - ssh $SSH_REMOTE_UAT "cd $CI_PROJECT_PATH && git clone http://10.80.1.20/root/ssh_docker_test.git"
     - scp docker-compose.yml $SSH_REMOTE_UAT:$CI_PROJECT_PATH
     - ssh $SSH_REMOTE_UAT "cd $CI_PROJECT_PATH && docker-compose -f docker-compose.yml down && docker-compose -f docker-compose.yml up -d"
     - hostname
     - echo "OK"
+  # environment: #可自行設定，但目前沒發現有什麼作用
+  #   name: UAT
+  #   url: http://10.80.1.24
   when: manual #手動模式
-
 
 
 deploy_PROD:
   stage: deploy
   image: tpepchi9/web_base:latest
   variables:
-    CI_PROJECT_PATH: /root/docker_configs/chi/testcicd
     SSH_REMOTE_PROD: root@10.80.1.18
-  before_script:
+    CI_PROJECT_PATH: /root/docker_configs/chi/testcicd
+  before_script: 
     - 'which ssh-agent || ( apk update && apk add openssh-client)'
     - eval $(ssh-agent -s)
-    - echo "$SSH_PRIVATE_KEY" > deploy.key 
+    - echo "$SSH_PRIVATE_KEY" > deploy.key
     - chmod 0600 deploy.key
     - ssh-add deploy.key
     - mkdir -p ~/.ssh    
-    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config' #tStrictHostKeyChecking no安全性較低，但網內可以使用
   script:
     - echo "PROD"
+    - ssh $SSH_REMOTE_PROD
     - ssh $SSH_REMOTE_PROD "cd $CI_PROJECT_PATH && git clone http://10.80.1.20/root/ssh_docker_test.git"
     - scp docker-compose.yml $SSH_REMOTE_PROD:$CI_PROJECT_PATH
     - ssh $SSH_REMOTE_PROD "cd $CI_PROJECT_PATH && docker-compose -f docker-compose.yml down && docker-compose -f docker-compose.yml up -d"
